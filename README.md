@@ -9,6 +9,8 @@
 
 - [poezie](https://www.korpus.cz/kontext/query?corpname=ksp_2) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:ksp)
 
+- [akademická čeština](https://www.korpus.cz/kontext/query?corpname=veda) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:veda)
+
 ### dotazovací jazyk CQL
 
 - [pokročilé dotazy](https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy)
