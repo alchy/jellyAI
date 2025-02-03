@@ -1,15 +1,17 @@
 ## Hledání v českém jazykovém korpusu
 
 
-jakykové korpusy: [varianty](https://wiki.korpus.cz/doku.php/cnk:uvod)
+### jakykové korpusy
 
-jazykové korpusy 
+- [varianty](https://wiki.korpus.cz/doku.php/cnk:uvod)
 
-[Karel Čapek](https://www.korpus.cz/kontext/query?corpname=capek) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:capek)
+- [Karel Čapek](https://www.korpus.cz/kontext/query?corpname=capek) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:capek)
 
-[poezie](https://www.korpus.cz/kontext/query?corpname=ksp_2) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:ksp)
+- [poezie](https://www.korpus.cz/kontext/query?corpname=ksp_2) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:ksp)
 
-dotazovací jazyk CQL: [pokročilé dotazy](https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy)
+### dotazovací jazyk CQL
+
+- [pokročilé dotazy](https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy)
 
 ```
 <s>[word=".*"] [word=".*"] [word=".*"] [word=".*"]</s>
