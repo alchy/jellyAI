@@ -3,7 +3,11 @@
 
 jakykové korpusy: [varianty](https://wiki.korpus.cz/doku.php/cnk:uvod)
 
-jazykový korpus [Karel Čapek](https://www.korpus.cz/kontext/query?corpname=capek). [poezie](https://www.korpus.cz/kontext/query?corpname=ksp_2)
+jazykové korpusy 
+
+[Karel Čapek](https://www.korpus.cz/kontext/query?corpname=capek) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:capek)) 
+
+[poezie](https://www.korpus.cz/kontext/query?corpname=ksp_2) - [o korpusu](https://wiki.korpus.cz/doku.php/cnk:ksp)
 
 dotazovací jazyk CQL: [pokročilé dotazy](https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy)
 
