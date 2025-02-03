@@ -1,11 +1,11 @@
 ## Hledání v českém jazykovém korpusu
 
 
-jakykové korpusy: (varianty)[https://wiki.korpus.cz/doku.php/cnk:uvod]
+jakykové korpusy: (https://wiki.korpus.cz/doku.php/cnk:uvod)[varianty]
 
-jazykový korpus Karel Čapek: [https://www.korpus.cz/kontext/query?corpname=capek]
+jazykový korpus (https://www.korpus.cz/kontext/query?corpname=capek)[Karel Čapek]
 
-dotazovací jazyk CQL: (pokročilé dotazy)[https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy]
+dotazovací jazyk CQL: (https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy)[pokročilé dotazy]
 
 ```
 "<s>[word=".*"] [word=".*"] [word=".*"] [word="\."]
