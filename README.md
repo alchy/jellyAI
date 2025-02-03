@@ -7,16 +7,11 @@ jazykový korpus Karel Čapek: [https://www.korpus.cz/kontext/query?corpname=cap
 
 dotazovací jazyk CQL: (pokročilé dotazy)[https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy]
 
+```
+"<s>[word=".*"] [word=".*"] [word=".*"] [word="\."]
+```
 
-
-
-
-<s>[word=".*"] [word=".*"] [word=".*"] [word="\."]
-
-
-nyní vytvoř funkci, která pro každé slovo v každé vědět udělá následující
-
-vytvoří pole "continuous attention" (ca), obecně pole ca
+pro každé slovo v každé větě vytvoří pole "continuous attention" (ca), pole "ca"
 
 - zohlední dle parametru ca_attention_span_lenght délku indexace prvků ve větě
 - zohlední vzdálenost každého prvku věty od zpracovánaého - aktivního slova, tato hodnota se počítá  tak, že nalevo v textu od prvku hodnotu zvětšuje čím více se blíží slovo prvku, zohlední nastavení ca_attention_weight - bude vysvětleno níže
