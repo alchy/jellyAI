@@ -3,12 +3,12 @@
 
 jakykové korpusy: [varianty](https://wiki.korpus.cz/doku.php/cnk:uvod)
 
-jazykový korpus [Karel Čapek](https://www.korpus.cz/kontext/query?corpname=capek)
+jazykový korpus [Karel Čapek](https://www.korpus.cz/kontext/query?corpname=capek). [poezie](https://www.korpus.cz/kontext/query?corpname=ksp_2)
 
 dotazovací jazyk CQL: [pokročilé dotazy](https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy)
 
 ```
-"<s>[word=".*"] [word=".*"] [word=".*"] [word="\."]
+<s>[word=".*"] [word=".*"] [word=".*"] [word=".*"]</s>
 ```
 
 pro každé slovo v každé větě vytvoří pole "continuous attention" (ca), pole "ca"
