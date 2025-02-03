@@ -1,3 +1,18 @@
+## Hledání v českém jazykovém korpusu
+
+
+jakykové korpusy: (varianty)[https://wiki.korpus.cz/doku.php/cnk:uvod]
+
+jazykový korpus Karel Čapek: [https://www.korpus.cz/kontext/query?corpname=capek]
+
+dotazovací jazyk CQL: (pokročilé dotazy)[https://wiki.korpus.cz/doku.php/kurz:pokrocile_dotazy]
+
+
+
+
+
+<s>[word=".*"] [word=".*"] [word=".*"] [word="\."]
+
 
 nyní vytvoř funkci, která pro každé slovo v každé vědět udělá následující
 
