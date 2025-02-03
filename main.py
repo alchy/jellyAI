@@ -1,6 +1,9 @@
 # main.py
 
+import numpy as np
 from nlp import TextProcessor
+from helpers import print_aligned_vocabulary_and_array, print_aligned_vocabulary_and_array_combo
+from nn.neuralbase import NeuralNetwork
 from nlptensors import NLPTensorProcessor
 
 # Input text with explicit spaces between sentences
@@ -39,35 +42,54 @@ for sentence_idx, sentence_ca in enumerate(continuous_attention):
         print(f"CA Words:   {ca_words}")
         print(f"CA Weights: [{', '.join([f'{w:.1f}' for w in ca_weights])}]")
 
+# nastaveí neuronky
+vocabulary_size = len(processor.vocabulary_itw)  # vcetne rezervovanych tokenu
+input_layer_count = vocabulary_size
+hidden_layer_counts = [round(vocabulary_size / ca_attention_span_length), vocabulary_size]
+output_layer_count = vocabulary_size
+save_dir = "./model_checkpoints"
 
-###
+# inicializace neuronky
+nn = NeuralNetwork(input_layer_count, hidden_layer_counts, output_layer_count, save_dir)
 
-# Vytvoření instance NLPTensorProcessor
-tensor_processor = NLPTensorProcessor(processor)
+# Seznamy pro uložení vstupních a výstupních dat
+X = []
+y = []
+
+# Iterace přes všechny záznamy v continuous_attention
+for ca_sample in continuous_attention:
+    # Vytvoření nlm_index_array pro vstupní a výstupní data
+    nlm_input_index_array = processor.create_nlm_index(continuous_attention_sample=ca_sample[0])
+    nlm_output_index_array = processor.create_nlm_index(
+        continuous_attention_sample=([ca_sample[0][0][ca_attention_span_length]], [0.9]))
+
+    # Přidání do seznamů
+    X.append(nlm_input_index_array)
+    y.append(nlm_output_index_array)
+
+# Konverze seznamů na numpy array
+X = np.array(X)
+y = np.array(y)
+
+# Tisk zarovnaného slovníku a nlm_index_array pro první záznam
+print_aligned_vocabulary_and_array_combo(processor.vocabulary_itw, X[0], y[0])
+
+print("X: ", X)
+print("y: ", y)
 
 # Trénování modelu
-tensor_processor.train(num_epochs=100, sequence_length=3)
+nn.train(X, y, batch_size=1, epochs=50)
+nn.summary()
 
-# Příklad predikce
-test_sequence = processor.si[0][:2]  # Prvních x slov z X věty
-predicted_word = tensor_processor.predict_next_word(test_sequence)
-print(f"\nTest sequence: {[processor.itw(idx) for idx in test_sequence]}")
-print(f"Predicted next word: {predicted_word}")
+# Provádění predikce na základě prvního vzorku v continuous_attention
+first_sample = X[0].reshape(1, -1)
+first_sample_prediction = nn.predict(first_sample)
+print("Prediction for the first sample:", first_sample_prediction)
 
-# Příklad predikce
-test_sequence = [processor.wti('ema'), processor.wti('je')]  # Prvních x slov z X věty
-predicted_word = tensor_processor.predict_next_word(test_sequence)
-print(f"\nTest sequence: {[processor.itw(idx) for idx in test_sequence]}")
-print(f"Predicted next word: {predicted_word}")
+# tisk prvniho vzorku
+print_aligned_vocabulary_and_array_combo(processor.vocabulary_itw, X[0].flatten(), y[0].flatten())
 
-# Příklad predikce
-test_sequence = [processor.wti('ema'), processor.wti('rada')]  # Prvních x slov z X věty
-predicted_word = tensor_processor.predict_next_word(test_sequence)
-print(f"\nTest sequence: {[processor.itw(idx) for idx in test_sequence]}")
-print(f"Predicted next word: {predicted_word}")
+# Tisk zarovnaného slovníku pro zadani a vystup nn
+print_aligned_vocabulary_and_array_combo(
+    processor.vocabulary_itw, first_sample.flatten(), first_sample_prediction.flatten())
 
-# Příklad predikce
-test_sequence = [processor.wti('maso'), processor.wti('ma')]  # Prvních x slov z X věty
-predicted_word = tensor_processor.predict_next_word(test_sequence)
-print(f"\nTest sequence: {[processor.itw(idx) for idx in test_sequence]}")
-print(f"Predicted next word: {predicted_word}")

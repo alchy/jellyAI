@@ -99,3 +99,15 @@ wa(1..n)+wm(1..n)
 
 training set SENTENCE => SENTENCE
 
+```aiignore
+# Vytvoření a naplnění nlm_index_array - input a output
+nlm_input_index_array = processor.create_nlm_index(
+    continuous_attention_sample=continuous_attention[0][0])
+
+nlm_output_index_array = processor.create_nlm_index(
+    continuous_attention_sample=([continuous_attention[0][0][0][ca_attention_span_length]], [0.9]))
+
+# Tisk zarovnaného slovníku a nlm_index_array
+print_aligned_vocabulary_and_array_combo(processor.vocabulary_itw, nlm_input_index_array, nlm_output_index_array)
+
+```
