@@ -1,8 +1,13 @@
 # nlp.py
+import numpy as np
+import re
 
 class TextProcessor:
-    def __init__(self, input_text, reserved_tokens_count=4):
-        self.input_text = input_text
+    def __init__(self, input_text, reserved_tokens_count=1):
+        self.input_text = re.sub(r'\s+', ' ', input_text
+                                 .replace(".", " </p>")
+                                 .replace(",", " </colon>")
+                                 .replace(":", " </semicolon>"))
         self.reserved_tokens_count = reserved_tokens_count
         self.vocabulary_wti = {}  # Dictionary mapping word -> index
         self.vocabulary_itw = [f"<reserved-{i}>" for i in range(self.reserved_tokens_count)]
@@ -11,7 +16,7 @@ class TextProcessor:
         self.split_into_sentences()
 
     def create_vocabularies(self):
-        words = self.input_text.replace(".", "").replace(",", "").split()
+        words = self.input_text.split()
         index = self.reserved_tokens_count
         for word in words:
             if word not in self.vocabulary_wti:
@@ -28,7 +33,7 @@ class TextProcessor:
         return ""
 
     def split_into_sentences(self):
-        sentences = self.input_text.split(".")
+        sentences = self.input_text.split("</p>")
         for sentence in sentences:
             if sentence.strip():
                 words = sentence.replace(",", "").split()
@@ -79,9 +84,9 @@ class TextProcessor:
 
                         # Calculate weight based on offset
                         if offset > 0:  # Words to the right
-                            ca_weights[array_pos] = 1.0 - (offset * ca_attention_weight)
+                            ca_weights[array_pos] = np.tanh(1.1 - (offset * ca_attention_weight))
                         elif offset < 0:  # Words to the left
-                            ca_weights[array_pos] = ((-1) ** abs(offset)) * (abs(offset) * ca_attention_weight)
+                            ca_weights[array_pos] = np.tanh(offset * ca_attention_weight)
                         # When offset == 0, weight remains 0
 
                 sentence_ca.append((ca_words, ca_weights))
