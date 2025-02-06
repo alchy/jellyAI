@@ -2,9 +2,11 @@
 
 import numpy as np
 from nlp import TextProcessor
-from helpers import print_aligned_vocabulary_and_array, print_aligned_vocabulary_and_array_combo
+from helpers import (print_aligned_vocabulary_and_array,
+                     print_aligned_vocabulary_and_array_combo,
+                     return_aligned_vocabulary_and_array)
 from nn.neuralbase import NeuralNetwork
-from nlptensors import NLPTensorProcessor
+
 
 # Input text with explicit spaces between sentences
 input_text = (
@@ -79,23 +81,18 @@ print("X: ", X)
 print("y: ", y)
 
 # Trénování modelu
-nn.train(X, y, batch_size=1, epochs=200)
-nn.summary()
+#nn.train(X, y, batch_size=1, epochs=200)
+#nn.summary()
 
-# Provádění predikce na základě prvního vzorku v continuous_attention
-#nlm_input_index_array = processor.create_nlm_index(
-#        continuous_attention_sample=([continuous_attention[1][0][0][ca_attention_span_length]], [0.9]))
-
+# Provádění predikce na základě vzorku
 sample_to_test = 1
-first_sample = X[sample_to_test].reshape(1, -1)
-first_sample_prediction = nn.predict(first_sample)
-print("Prediction for the first sample:", first_sample_prediction)
-
-# tisk prvniho vzorku
-print_aligned_vocabulary_and_array_combo(
-    processor.vocabulary_itw, X[sample_to_test].flatten(), y[sample_to_test].flatten())
+sample = X[sample_to_test].reshape(1, -1)
+sample_prediction = nn.predict(sample)
 
 # Tisk zarovnaného slovníku pro zadani a vystup nn
 print_aligned_vocabulary_and_array_combo(
-    processor.vocabulary_itw, first_sample.flatten(), first_sample_prediction.flatten())
+    processor.vocabulary_itw, sample.flatten(), sample_prediction.flatten())
 
+print("\n----------------------------")
+print(return_aligned_vocabulary_and_array(processor.vocabulary_itw, sample.flatten()))
+print(return_aligned_vocabulary_and_array(processor.vocabulary_itw, sample_prediction.flatten()))

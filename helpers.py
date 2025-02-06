@@ -1,3 +1,29 @@
+def return_aligned_vocabulary_and_array(vocabulary, array, threshold=0.01):
+    """
+    Returns a dictionary of vocabulary words and their corresponding array values,
+    filtering out values below the absolute threshold and rounding based on threshold.
+
+    Args:
+        vocabulary (list): The list of vocabulary words.
+        array (list): The list of corresponding values.
+        threshold (float): Minimum absolute value to include in results (default: 0.01)
+
+    Returns:
+        dict: Dictionary of word:value pairs where abs(value) >= threshold
+    """
+    # Určení počtu desetinných míst podle thresholdu
+    decimal_places = abs(int(f"{threshold:e}".split('e')[1]))
+
+    result = {}
+    for i, word in enumerate(vocabulary):
+        value = array[i]
+        if abs(value) >= threshold:
+            value = float(f"{value:.{decimal_places}f}")
+            result[word] = value
+
+    return result
+
+
 def print_aligned_vocabulary_and_array(vocabulary, array):
     """
     Prints the vocabulary and the corresponding values in the array aligned side by side.
