@@ -20,6 +20,7 @@ class TextProcessor:
             .replace(')', '</right-bracket>')
             .replace('?', '</question-mark>')
             .replace('--', '</double-minuses>')
+            .replace('"', '</quote>')
             .replace('\n', '</new-line>')
         )
         self.input_text = re.sub(r'\s+', '</space>', self.input_text)
