@@ -9,7 +9,7 @@ from api.jellyAPI import JellyAPI
 
 
 # program behavior
-API_RUN = True
+USE_API = True
 TRAINING = True
 
 
@@ -33,6 +33,7 @@ input_text = (
     "misa je modra. "
     "ema nema rada maso. "
     "ema ma mamu. "
+    
 )
 
 # create instance of text_processor with input text
@@ -102,34 +103,62 @@ if TRAINING:
     nn.summary()
 
 # main loop
-if API_RUN:
+if USE_API:
     api = JellyAPI()
     api.clear_data()
 
 running = True
+API_RUN = True  # Toggle API calls
 
-while running:
-    user_input = input("Enter a word (enter '.' to stop): ")
-    if user_input == '.':
+def main():
+    running = True
+    last_output = None
+    last_user_input = None
+
+    while running:
+        user_input = input("Enter a word (enter '.' to stop): ")
+        if user_input == '.':
             print("Stopping the loop.")
             running = False
-    else:
-        # Prediction
-        sample, nn_result = nn_prediction(user_input)
+        else:
+            # Use last_output if user_input is empty
+            if user_input == '' and last_output is not None:
+                user_input = last_output
+                send_to_api = False
+            else:
+                send_to_api = True
 
-        # Tisk zarovnaného slovníku pro zadani a vystup nn
-        print_aligned_vocabulary_and_array_combo(
-            text_processor.vocabulary_itw, sample[0], nn_result.flatten())
+            # Prediction
+            sample, nn_result = nn_prediction(user_input)
 
-        
-        # Přidání nových dat do API
-        # user_input
-        api_post_data = return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, sample[0], threshold=0.01)
-        print("[d] API post data: ", api_post_data)
-        if API_RUN:
-            print("[i] API response sample[0]: ", api.add_data(return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, sample[0], threshold=0.01)))
-        # prediction
-        api_post_data = return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)
-        print("[d] API post data: ", api_post_data)
-        if API_RUN:
-            print("[i] API response nn_result[0]: ", api.add_data(return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)))
+            # Print aligned vocabulary for input and nn output
+            print_aligned_vocabulary_and_array_combo(
+                text_processor.vocabulary_itw, sample[0], nn_result.flatten())
+
+            if USE_API:
+                
+                if send_to_api:
+                    # Adding new data to API for user input
+                    api_post_data = return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, sample[0], threshold=0.01)    
+                    print("[d] API post data: ", api_post_data)
+                    print("[i] API response sample[0]: ", api.add_data(return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, sample[0], threshold=0.01)))
+                
+                    # Adding new data to API for nn prediction
+                    api_post_data = return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)    
+                    print("[d] API post data: ", api_post_data)
+                    print("[i] API response nn_result[0]: ", api.add_data(return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)))
+                else:
+                    # Adding new data to API for nn prediction
+                    api_post_data = return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)    
+                    print("[d] API post data: ", api_post_data)
+                    print("[i] API response nn_result[0]: ", api.add_data(return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)))
+
+            # Save current output as last_output
+            values = return_aligned_vocabulary_and_array(text_processor.vocabulary_itw, nn_result[0], threshold=0.01)  
+            max_key = max(values, key=values.get)
+
+            print("[d] prediction: ", max_key)
+            last_output = max_key
+
+if __name__ == "__main__":
+    main()
