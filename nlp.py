@@ -7,7 +7,7 @@ DEBUG = True
 
 
 class TextProcessor:
-    def __init__(self, input_text, reserved_tokens_count=1):
+    def __init__(self, input_text, reserved_tokens_count=16):
         self.reserved_tokens_count = reserved_tokens_count
         
         self.input_text = (
