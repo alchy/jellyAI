@@ -10,7 +10,15 @@ class TextProcessor:
     def __init__(self, input_text, reserved_tokens_count=1):
         self.reserved_tokens_count = reserved_tokens_count
         
-        self.input_text = input_text.replace('.', '</p>').replace(',', '</comma>').replace(';', '</semicolon>').replace(':', '</colon>')
+        self.input_text = (
+            input_text.replace('.', '</p>')
+            .replace(',', '</comma>')
+            .replace(';', '</semicolon>')
+            .replace(':', '</colon>')
+            .replace('!', '</exclamation mark>')
+            .replace('(','</left bracket>')
+            .replace(')', '</right bracket>')
+        )
         self.input_text = re.sub(r'\s+', '</space>', self.input_text)
 
         self.vocabulary_itw = [f"<reserved-{i}>" for i in range(self.reserved_tokens_count)]
