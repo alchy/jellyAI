@@ -24,9 +24,6 @@ class TextProcessor:
         # rozdel text, oddelovace <> zustanou soucasti slovniku
         words = re.split(r'(</?[^>]+>)', self.input_text)
         words = [word for word in words if word.strip()]
-        
-        if DEBUG:
-            print("[d] create_vocabularies: ", words)
 
         # vytvor slovniky
         index = self.reserved_tokens_count
@@ -36,9 +33,17 @@ class TextProcessor:
                 self.vocabulary_itw.append(word)
                 index += 1
 
+        if DEBUG:
+            print("[d] create_vocabularies: ", self.vocabulary_wti)
+
     # vstup je slovo, vystup je index (pozice ve slovniku) 
     def wti(self, word):
-        return self.vocabulary_wti.get(word, -1)
+        word_to_index = self.vocabulary_wti.get(word, -1)
+        if word_to_index == -1:
+            print("[!] word to index failure")
+            exit()
+
+        return word_to_index
 
     # vstup je index (pozice ve slovniku, vystup je slovo)
     def itw(self, index):
@@ -53,16 +58,22 @@ class TextProcessor:
         sentences are then in class variable:
             self.sentences[ [s1], [s2], [s3]..]
         """
+        if DEBUG:
+            print("[d] entering function split_text_into_sentence_index")
+
+        # Exclude all instances of the delimiter "</space>" from sentence
+        exclude = self.wti("</space>")
+
         sentences = self.input_text.split("</p>") # split input text to sentence strings
         for sentence in sentences: # for each sentence
-            if DEBUG:
-                print("[d] split_text_into_sentence_index -> sentence: ", sentence)
-            
-            if sentence.strip():                
+            if sentence.strip():
+                # split sentence to array of words
                 words = re.split(r'(</?[^>]+>)', sentence)
-                sentence_indices = [self.wti(word) for word in words]
+                # eliminate empty words
+                words = [field for field in words if field]
+                # create index of words
+                sentence_indices = [self.wti(word) for word in words if word != exclude]
                 self.sentence_index.append(sentence_indices)
-
 
     def create_text_attention(self, text_attention_span_length=3, text_attention_weight=0.1):
         """
@@ -76,17 +87,12 @@ class TextProcessor:
             list: List of sentences, where each sentence contains a list of tuples.
                  Each tuple contains (text_attention_words, text_attention_weights) for each word position.
         """
-        text_attention_sentences = []
+        text_attention_sentences_local = []
         for sentence in self.sentence_index:
+            # define text_attention_sentence_local placeholder
+            text_attention_sentence_local = []
 
-
-            text_attention_sentence = []
-            
-            # Exclude all instances of the delimiter "</space>"
-            exclude = self.wti("</space>")
-            sentence = [word for word in sentence if word != exclude]
-
-            # count lenghts 
+            # count lengths
             text_attention_sentence_length = len(sentence)
 
             # For each word position in the sentence
@@ -117,11 +123,11 @@ class TextProcessor:
                         if DEBUG:
                             print("[d] create_text_attention -> text attention words: ", text_attention_words, " text attention weights: ", text_attention_weights)
                         
-                text_attention_sentence.append((text_attention_words, text_attention_weights))
+                text_attention_sentence_local.append((text_attention_words, text_attention_weights))
 
-            text_attention_sentences.append(text_attention_sentence)
+            text_attention_sentences_local.append(text_attention_sentence_local)
 
-        return text_attention_sentences
+        return text_attention_sentences_local
 
     def create_nlm_index(self, text_attention_sample):
         """
