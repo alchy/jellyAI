@@ -74,17 +74,23 @@ class TextProcessor:
             print("[d] entering function split_text_into_sentence_index")
 
         # Exclude all instances of the delimiter "</space>" from sentence
-        exclude = self.wti("</space>")
+        exclude = "</space>"
 
         sentences = self.input_text.split("</p>") # split input text to sentence strings
         for sentence in sentences: # for each sentence
             if sentence.strip():
                 # split sentence to array of words
                 words = re.split(r'(</?[^>]+>)', sentence)
+                print("[d] words1: ", words)
                 # eliminate empty words
                 words = [field for field in words if field]
+                print("[d] words2: ", words)
+                # eliminate delimiter
+                words = [field for field in words if field != exclude]
+                print("[d] words3: ", words)
                 # create index of words
-                sentence_indices = [self.wti(word) for word in words if word != exclude]
+                sentence_indices = [self.wti(word) for word in words]
+
                 self.sentence_index.append(sentence_indices)
 
     def create_text_attention(self, text_attention_span_length=3, text_attention_weight=0.1):
