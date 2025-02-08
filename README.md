@@ -1,5 +1,9 @@
 ## Hledání v českém jazykovém korpusu
 
+### Karel Capek R.U.R:
+
+https://www.gutenberg.org/cache/epub/13083/pg13083.txt
+https://www.gutenberg.org/ebooks/author/4823
 
 ### jakykové korpusy
 
