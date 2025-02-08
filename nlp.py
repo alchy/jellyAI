@@ -18,6 +18,7 @@ class TextProcessor:
             .replace('!', '</exclamation-mark>')
             .replace('(','</left-bracket>')
             .replace(')', '</right-bracket>')
+            .replace('?', '</question-mark>')
             .replace('--', '</double-minuses>')
             .replace('\n', '</new-line>')
         )
