@@ -7,13 +7,13 @@ USE_API = True
 TRAINING = True
 
 # Neural Network configuration
-TEXT_ATTENTION_SPAN_LENGTH = 3
+TEXT_ATTENTION_SPAN_LENGTH = 7
 TEXT_ATTENTION_WEIGHT = 0.1
 SAVE_DIR = "./model_checkpoints"
 
 # Training parameters
-BATCH_SIZE = 3
-EPOCHS = 1024
+BATCH_SIZE = 16
+EPOCHS = 512
 
 # Path to the directory containing .txt files
 TEXT_DIRECTORY = 'input_text'
