@@ -37,6 +37,7 @@ def read_all_text_files(directory):
                 encoding = result['encoding']
                 text = raw_data.decode(encoding)
                 text = remove_diacritics(text)
+                text = text.lower()
                 combined_text += text + "\n"  # Add a newline to separate file contents
 
     return combined_text
