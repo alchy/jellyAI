@@ -26,6 +26,9 @@ class ModelHandler:
         self.input_layer_count = self.vocabulary_size
         self.hidden_layer_counts = [
             round(8),
+            round(self.vocabulary_size),
+            round(self.vocabulary_size),
+            round(self.vocabulary_size),
             round(self.vocabulary_size)
         ]
         self.output_layer_count = self.vocabulary_size
