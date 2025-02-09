@@ -29,6 +29,15 @@ def main():
     
 
     if config.TRAINING:
+        # Prepare and train model (missing word)
+        y, X = model_handler.prepare_training_data(text_attention, config.TEXT_ATTENTION_SPAN_LENGTH)
+
+        print("\nSample input/output data visualization:")
+        print_aligned_vocabulary_and_array_combo(
+            text_processor.vocabulary_itw, X[0], y[0]
+        )
+        model_handler.train(X, y, config.BATCH_SIZE, config.EPOCHS)
+
         # Prepare and train model (nearby words)
         X, y = model_handler.prepare_training_data(text_attention, config.TEXT_ATTENTION_SPAN_LENGTH)
         
@@ -38,15 +47,6 @@ def main():
         )
         model_handler.train(X, y, config.BATCH_SIZE, config.EPOCHS)
 
-        # Prepare and train model (missing word)
-        y, X = model_handler.prepare_training_data(text_attention, config.TEXT_ATTENTION_SPAN_LENGTH)
-
-        print("\nSample input/output data visualization:")
-        print_aligned_vocabulary_and_array_combo(
-            text_processor.vocabulary_itw, X[0], y[0]
-        )
-        model_handler.train(X, y, config.BATCH_SIZE, config.EPOCHS)
-    
     # Initialize API handler if needed
     api_handler = APIHandler() if config.USE_API else None
     
