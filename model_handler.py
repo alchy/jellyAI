@@ -25,7 +25,7 @@ class ModelHandler:
         # Neural network layer configuration
         self.input_layer_count = self.vocabulary_size
         self.hidden_layer_counts = [
-            round(self.vocabulary_size / 7),
+            round(8),
             round(self.vocabulary_size)
         ]
         self.output_layer_count = self.vocabulary_size

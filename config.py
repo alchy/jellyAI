@@ -13,7 +13,7 @@ SAVE_DIR = "./model_checkpoints"
 
 # Training parameters
 BATCH_SIZE = 64
-EPOCHS = 8
+EPOCHS = 3
 
 # Path to the directory containing .txt files
 TEXT_DIRECTORY = 'input_text'
