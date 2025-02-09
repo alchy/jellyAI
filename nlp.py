@@ -1,43 +1,72 @@
-# nlp.py
 import numpy as np
 import re
-
+from collections import Counter
 
 DEBUG = True
 
 
 class TextProcessor:
-    def __init__(self, input_text, reserved_tokens_count=16):
+    """
+    Třída pro zpracování textu s podporou attention mechanismu a vážení slov 
+    podle jejich distribuce v textu.
+    """
+
+    def __init__(self, input_text, reserved_tokens_count=16, gaussian_range=1.0):
+        """
+        Inicializace TextProcessoru.
+
+        Args:
+            input_text (str): Vstupní text k zpracování
+            reserved_tokens_count (int): Počet rezervovaných tokenů na začátku slovníku
+            gaussian_range (float): Rozsah standardních odchylek pro úpravu vah slov
+        """
         self.reserved_tokens_count = reserved_tokens_count
-        
+        self.gaussian_range = gaussian_range
+
+        # Nahrazení speciálních znaků za tokenizované verze
         self.input_text = (
             input_text.replace('.', '</p>')
             .replace(',', '</comma>')
             .replace(';', '</semicolon>')
             .replace(':', '</colon>')
             .replace('!', '</exclamation-mark>')
-            .replace('(','</left-bracket>')
+            .replace('(', '</left-bracket>')
             .replace(')', '</right-bracket>')
             .replace('?', '</question-mark>')
-            .replace('"', '</quote>')
+            .replace('\"', '</quote>')
             .replace('--', '</double-minuses>')
             .replace('\n', '</new-line>')
         )
+        # Nahrazení bílých znaků za token mezery
         self.input_text = re.sub(r'\s+', '</space>', self.input_text)
 
-        self.vocabulary_itw = [f"<reserved-{i}>" for i in range(self.reserved_tokens_count)]
-        self.vocabulary_wti = {}  # Dictionary mapping word -> index        
-        self.create_vocabularies() # Vytvoř slovníky
+        # Inicializace slovníků pro převod mezi slovy a indexy
+        self.vocabulary_itw = [f"<reserved-{i}>" for i in range(self.reserved_tokens_count)]  # index->word
+        self.vocabulary_wti = {}  # word->index
 
-        self.sentence_index = []  # List of sentences (sentence index), where each sentence is a list of word indices - words are number tokens
+        # Vytvoření slovníků
+        self.create_vocabularies()
+
+        # List vět, kde každá věta je seznam indexů slov
+        self.sentence_index = []
         self.split_text_into_sentence_index()
 
+        # Výpočet vah slov na základě jejich distribuce v textu
+        self.word_weights = self.calculate_word_weights()
+
+        if DEBUG:
+            print("[d] Word weights distribution:", self.word_weights)
+
     def create_vocabularies(self):
-        # rozdel text, oddelovace <> zustanou soucasti slovniku
+        """
+        Vytvoří slovníky pro převod mezi slovy a jejich indexy.
+        Rozdělí text na slova a přiřadí jim unikátní indexy.
+        """
+        # Rozdělení textu na slova, zachování oddělovačů v <>
         words = re.split(r'(</?[^>]+>)', self.input_text)
         words = [word for word in words if word.strip()]
 
-        # vytvor slovniky
+        # Vytvoření slovníků word->index a index->word
         index = self.reserved_tokens_count
         for word in words:
             if word not in self.vocabulary_wti:
@@ -48,99 +77,155 @@ class TextProcessor:
         if DEBUG:
             print("[d] create_vocabularies: ", self.vocabulary_wti)
 
-    # vstup je slovo, vystup je index (pozice ve slovniku) 
     def wti(self, word):
+        """
+        Převede slovo na jeho index ve slovníku.
+
+        Args:
+            word (str): Slovo k převodu
+
+        Returns:
+            int: Index slova ve slovníku
+        """
         word_to_index = self.vocabulary_wti.get(word, -1)
         if word_to_index == -1:
             print("[!] word to index failure")
             exit()
-
         return word_to_index
 
-    # vstup je index (pozice ve slovniku, vystup je slovo)
     def itw(self, index):
+        """
+        Převede index na odpovídající slovo.
+
+        Args:
+            index (int): Index slova
+
+        Returns:
+            str: Slovo odpovídající indexu
+        """
         if 0 <= index < len(self.vocabulary_itw):
             return self.vocabulary_itw[index]
         return ""
 
     def split_text_into_sentence_index(self):
         """
-        split all input_text to separate sentences in index:
-
-        sentences are then in class variable:
-            self.sentences[ [s1], [s2], [s3]..]
+        Rozdělí vstupní text na věty a převede je na posloupnosti indexů slov.
+        Výsledek uloží do self.sentence_index.
         """
         if DEBUG:
             print("[d] entering function split_text_into_sentence_index")
 
-        # Exclude all instances of the delimiter "</space>" from sentence
+        # Vyloučení mezery z tokenů
         exclude = "</space>"
 
-        sentences = self.input_text.split("</p>") # split input text to sentence strings
-        for sentence in sentences: # for each sentence
+        # Rozdělení textu na věty podle značky </p>
+        sentences = self.input_text.split("</p>")
+        for sentence in sentences:
             if sentence.strip():
-                # split sentence to array of words
+                # Rozdělení věty na slova
                 words = re.split(r'(</?[^>]+>)', sentence)
-                print("[d] words1: ", words)
-                # eliminate empty words
+                if DEBUG:
+                    print("[d] words1: ", words)
+                # Odstranění prázdných slov
                 words = [field for field in words if field]
-                print("[d] words2: ", words)
-                # eliminate delimiter
+                if DEBUG:
+                    print("[d] words2: ", words)
+                # Odstranění mezer
                 words = [field for field in words if field != exclude]
-                print("[d] words3: ", words)
-                # create index of words
+                if DEBUG:
+                    print("[d] words3: ", words)
+                # Převod slov na indexy
                 sentence_indices = [self.wti(word) for word in words]
-
                 self.sentence_index.append(sentence_indices)
+
+    def calculate_word_weights(self):
+        """
+        Vypočítá váhy slov na základě jejich četnosti v textu.
+        Používá Gaussovské rozložení pro identifikaci běžných slov.
+
+        Returns:
+            dict: Slovník {index_slova: váha}
+        """
+        # Spočítání četnosti slov
+        word_frequencies = Counter()
+        for sentence in self.sentence_index:
+            word_frequencies.update(sentence)
+
+        # Výpočet statistických hodnot
+        frequencies = list(word_frequencies.values())
+        if not frequencies:
+            return {i: 1.0 for i in range(len(self.vocabulary_itw))}
+
+        mean_freq = np.mean(frequencies)
+        std_freq = np.std(frequencies)
+
+        if std_freq == 0:
+            return {i: 1.0 for i in range(len(self.vocabulary_itw))}
+
+        # Výpočet vah pro každé slovo
+        word_weights = {}
+        for word_idx in range(len(self.vocabulary_itw)):
+            if word_idx < self.reserved_tokens_count:
+                # Rezervované tokeny mají plnou váhu
+                word_weights[word_idx] = 1.0
+                continue
+
+            freq = word_frequencies.get(word_idx, 0)
+            z_score = (freq - mean_freq) / std_freq
+
+            # Úprava váhy podle z-score
+            if abs(z_score) <= self.gaussian_range:
+                # Slova v běžném rozsahu četnosti mají sníženou váhu
+                weight = 1.0 - (1.0 - abs(z_score) / self.gaussian_range) * 0.5
+            else:
+                # Slova mimo běžný rozsah mají plnou váhu
+                weight = 1.0
+
+            word_weights[word_idx] = weight
+
+        return word_weights
 
     def create_text_attention(self, text_attention_span_length=3, text_attention_weight=0.1):
         """
-        creates text attention arrays - every array consists of all words in sentence.
+        Vytváří attention vektory pro každé slovo v textu.
 
         Args:
-            text_attention_span_length (int): The span length on each side of the focus word
-            text_attention_weight (float): The weight decay factor for attention
+            text_attention_span_length (int): Počet slov na každé straně od fokusovaného slova
+            text_attention_weight (float): Základní váha pro attention mechanismus
 
         Returns:
-            list: List of sentences, where each sentence contains a list of tuples.
-                 Each tuple contains (text_attention_words, text_attention_weights) for each word position.
+            list: Seznam vět, kde každá věta obsahuje seznam dvojic (slova, váhy)
         """
         text_attention_sentences_local = []
         for sentence in self.sentence_index:
-            # define text_attention_sentence_local placeholder
             text_attention_sentence_local = []
-
-            # count lengths
             text_attention_sentence_length = len(sentence)
 
-            # For each word position in the sentence
             for pos in range(text_attention_sentence_length):
-                # initialize arrays with zeros
-                # text attention array for 3 elements has 7 items
-                # w1    w2   w3 <-- w4 --> w5    w6    w7 
-                # words to left <att.word> words to right
+                # Inicializace polí pro slova a jejich váhy
                 text_attention_words = [0] * (2 * text_attention_span_length + 1)
                 text_attention_weights = [np.float64(0.0)] * (2 * text_attention_span_length + 1)
 
-                # Fill the arrays
+                # Naplnění polí pro aktuální pozici
                 for offset in range(-text_attention_span_length, text_attention_span_length + 1):
                     array_pos = offset + text_attention_span_length
                     sentence_pos = pos + offset
 
-                    # Check if the position is within sentence bounds
                     if 0 <= sentence_pos < text_attention_sentence_length:
-                        text_attention_words[array_pos] = sentence[sentence_pos]
+                        word_idx = sentence[sentence_pos]
+                        text_attention_words[array_pos] = word_idx
 
-                        # Calculate weight based on offset
-                        if offset > 0:  # Words to the right
-                            text_attention_weights[array_pos] = np.tanh(1.1 - (offset * text_attention_weight))
-                        elif offset < 0:  # Words to the left
-                            text_attention_weights[array_pos] = np.tanh(offset * text_attention_weight)
-                        # When offset == 0, weight remains 0
+                        # Výpočet základní váhy podle pozice
+                        if offset > 0:  # Slova vpravo
+                            base_weight = np.tanh(1.1 - (offset * text_attention_weight))
+                        elif offset < 0:  # Slova vlevo
+                            base_weight = np.tanh(offset * text_attention_weight)
+                        else:  # Aktuální slovo
+                            base_weight = 0.0
 
-                        if DEBUG:
-                            print("[d] create_text_attention -> text attention words: ", text_attention_words, " text attention weights: ", text_attention_weights)
-                        
+                        # Aplikace váhy slova z distribuce
+                        text_attention_weights[array_pos] = base_weight * self.word_weights[word_idx]
+
                 text_attention_sentence_local.append((text_attention_words, text_attention_weights))
 
             text_attention_sentences_local.append(text_attention_sentence_local)
@@ -149,27 +234,21 @@ class TextProcessor:
 
     def create_nlm_index(self, text_attention_sample):
         """
-        Creates a one-dimensional array with nlm_index_count elements,
-        initializes it with 0.0, and fills it with values from nlm_index_values
-        at positions corresponding to nlm_index_positions.
+        Vytvoří jednorozměrné pole pro NLM (Natural Language Model) z attention vzorku.
 
         Args:
-            text_attention (list): The continuous attention array
-            text_attention_sample
+            text_attention_sample (tuple): Dvojice (pozice, hodnoty) z text attention
 
         Returns:
-            list: One-dimensional array filled with appropriate values
+            list: Jednorozměrné pole s váhami na odpovídajících pozicích
         """
-        # Získání počtu prvků ve slovníku
         nlm_index_count = len(self.vocabulary_itw)
-
-        # Získání pozic a hodnot z text_attention
         nlm_index_positions, nlm_index_values = text_attention_sample
 
-        # Vytvoření jednorozměrného pole s délkou nlm_index_count a naplnění hodnotami 0.0
+        # Inicializace pole nulami
         nlm_index_array = [np.float64(0.0)] * nlm_index_count
 
-        # Naplnění pole hodnotami na odpovídající pozice
+        # Naplnění pole hodnotami na správných pozicích
         for position, value in zip(nlm_index_positions, nlm_index_values):
             if position < nlm_index_count:
                 nlm_index_array[position] = value
@@ -177,56 +256,25 @@ class TextProcessor:
         return nlm_index_array
 
 
-# Příklad použití třídy TextProcessor
+# Příklad použití
 if __name__ == "__main__":
+    # Testovací text
     input_text = "This is a sample. Sample input text. Text which contains several words. This text is used for testing."
+
+    # Vytvoření instance zpracovatele textu
     text_processor = TextProcessor(input_text)
 
-    """
-    # Vytvoření text_attention
-    [
-        [
-            ( [0, 0, 0, 1, 2, 3, 2], [0.0, 0.0, 0.0, 0.0, 0.76, 0.71, 0.66] ),
-            ( [0, 0, 1, 2, 3, 2, 4], [0.0, 0.0, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [0, 1, 2, 3, 2, 4, 2], [0.0, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [1, 2, 3, 2, 4, 2, 5], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66]), 
-            ( [2, 3, 2, 4, 2, 5, 0], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.0 ] ), 
-            ( [3, 2, 4, 2, 5, 0, 0], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.0, 0.0] ), 
-            ( [2, 4, 2, 5, 0, 0, 0], [-0.29, -0.19, -0.09, 0.0, 0.0, 0.0, 0.0] )
-        ], 
-        [
-            ( [0, 0, 0, -1, 2, 7, 2], [0.0, 0.0, 0.0, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [0, 0, -1, 2, 7, 2, 8], [0.0, 0.0, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [0, -1, 2, 7, 2, 8, 2], [0.0, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [-1, 2, 7, 2, 8, 2, 9], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [2, 7, 2, 8, 2, 9, 0], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.0] ), 
-            ( [7, 2, 8, 2, 9, 0, 0], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.0, 0.0] ), 
-            ( [2, 8, 2, 9, 0, 0, 0], [-0.29, -0.19, -0.09, 0.0, 0.0, 0.0, 0.0] )
-        ], 
-        [
-            ( [0, 0, 0, -1, 2, 10, 2], [0.0, 0.0, 0.0, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [0, 0, -1, 2, 10, 2, 11], [0.0, 0.0, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [0, -1, 2, 10, 2, 11, 2], [0.0, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [-1, 2, 10, 2, 11, 2, 12], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [2, 10, 2, 11, 2, 12, 2], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [10, 2, 11, 2, 12, 2, 13], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [2, 11, 2, 12, 2, 13, 2], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [11, 2, 12, 2, 13, 2, 14], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.66] ), 
-            ( [2, 12, 2, 13, 2, 14, 0], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.71, 0.0] ), 
-            ( [12, 2, 13, 2, 14, 0, 0], [-0.29, -0.19, -0.09, 0.0, 0.76, 0.0, 0.0] ), 
-            ( [2, 13, 2, 14, 0, 0, 0], [-0.29, -0.19, -0.09, 0.0, 0.0, 0.0, 0.0]) 
-        ], 
-        [..]
-    ]
-    """
-    text_attention_span_length = 3
-    text_attention_weight = 0.1
+    # Vytvoření attention vektorů
     text_attention = text_processor.create_text_attention(
-        text_attention_span_length=text_attention_span_length, text_attention_weight=text_attention_weight)
+        text_attention_span_length=3,
+        text_attention_weight=0.1
+    )
     print("\n[d] text attention index: ", text_attention)
 
-    # Vytvoření a naplnění nlm_index_array
+    # Test vytvoření NLM indexu
     text_attention_sentence = 0
-    text_attention_sentence_position = 0  # position is between 0 <---> text_attention_span_lengt * 2 (+1) 
-    nlm_index_array = text_processor.create_nlm_index(text_attention[text_attention_sentence][text_attention_span_length])
+    text_attention_sentence_position = 0
+    nlm_index_array = text_processor.create_nlm_index(
+        text_attention[text_attention_sentence][text_attention_sentence_position]
+    )
     print(nlm_index_array)
