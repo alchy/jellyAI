@@ -36,7 +36,7 @@ def read_all_text_files(directory):
                 result = chardet.detect(raw_data)
                 encoding = result['encoding']
                 text = raw_data.decode(encoding)
-                remove_diacritics(text)
+                text = remove_diacritics(text)
                 combined_text += text + "\n"  # Add a newline to separate file contents
 
     return combined_text
