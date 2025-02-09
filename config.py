@@ -7,7 +7,7 @@ USE_API = True
 TRAINING = True
 
 # Neural Network configuration
-TEXT_ATTENTION_SPAN_LENGTH = 7
+TEXT_ATTENTION_SPAN_LENGTH = 3
 TEXT_ATTENTION_WEIGHT = 0.1
 SAVE_DIR = "./model_checkpoints"
 
