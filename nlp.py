@@ -166,8 +166,8 @@ class TextProcessor:
         # Získání pozic a hodnot z text_attention
         nlm_index_positions, nlm_index_values = text_attention_sample
 
-        # Vytvoření jednorozměrného pole s délkou nlm_index_count a naplnění hodnotami 0.0
-        nlm_index_array = [np.float64(0.0)] * nlm_index_count
+        # Vytvoření jednorozměrného pole s délkou nlm_index_count a naplnění hodnotami -0.9
+        nlm_index_array = [np.float64(-0.9)] * nlm_index_count
 
         # Naplnění pole hodnotami na odpovídající pozice
         for position, value in zip(nlm_index_positions, nlm_index_values):
